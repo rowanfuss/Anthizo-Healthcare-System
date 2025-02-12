@@ -3,11 +3,26 @@ name: Deploy Flask App
 on:
   push:
     branches:
-      - main  # Runs this workflow whenever code is pushed to the main branch
+      - main  # Runs this workflow when code is pushed to main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: anthizo_healthcare
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
     - name: Checkout Code
@@ -22,20 +37,20 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-    
+
     - name: Set Flask Environment
       run: |
-        export FLASK_APP=app.py
-        export FLASK_ENV=production
-      
+        echo "FLASK_APP=app.py" >> $GITHUB_ENV
+        echo "FLASK_ENV=production" >> $GITHUB_ENV
+        echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/anthizo_healthcare" >> $GITHUB_ENV
+
     - name: Deploy Flask App (Local Server)
       env:
         FLASK_APP: app.py
         FLASK_ENV: production
-        DATABASE_URL: postgresql://postgres:Croclurksintheswamp333@localhost:5432/anthizo_healthcare
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/anthizo_healthcare
       run: |
-        flask db init || true  # Initialize migrations (ignores error if already done)
-        flask db migrate -m "Initial migration" || true  # Create migration (ignores if exists)
-        flask db upgrade  # Apply database migrations
+        sleep 10  # Wait for PostgreSQL to start
+        flask db upgrade  # Run database migrations
         nohup flask run --host=0.0.0.0 --port=5000 &
-      
+    
