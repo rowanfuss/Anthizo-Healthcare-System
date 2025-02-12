@@ -26,7 +26,11 @@ jobs:
     - name: Deploy Flask App (Local Server)
       env:
         FLASK_APP: app.py
-        DATABASE_URL: postgresql://postgres:Croclurksintheswamp333@localhost:5432/anthizo_healthcare
+        FLASK_ENV: production
+        DATABASE_URL: postgresql://postgres:your_password@localhost:5432/anthizo_healthcare
       run: |
-        flask db upgrade  # If using Flask-Migrate for database migrations
-        nohup flask run --host=0.0.0.0 --port=5000 &  # Run the app in the background
+        flask db init || true  # Initialize migrations (ignores error if already done)
+        flask db migrate -m "Initial migration" || true  # Create migration (ignores if exists)
+        flask db upgrade  # Apply database migrations
+        nohup flask run --host=0.0.0.0 --port=5000 &
+      
