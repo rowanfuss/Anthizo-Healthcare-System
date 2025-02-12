@@ -1,0 +1,32 @@
+name: Deploy Flask App
+
+on:
+  push:
+    branches:
+      - main  # Runs this workflow whenever code is pushed to the main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set Up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Deploy Flask App (Local Server)
+      env:
+        FLASK_APP: app.py
+        DATABASE_URL: postgresql://postgres:Croclurksintheswamp333@localhost:5432/anthizo_healthcare
+      run: |
+        flask db upgrade  # If using Flask-Migrate for database migrations
+        nohup flask run --host=0.0.0.0 --port=5000 &  # Run the app in the background
