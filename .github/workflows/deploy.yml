@@ -42,7 +42,7 @@ jobs:
       run: |
         echo "FLASK_APP=app.py" >> $GITHUB_ENV
         echo "FLASK_ENV=production" >> $GITHUB_ENV
-        echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/anthizo_healthcare" >> $GITHUB_ENV
+        echo "DATABASE_URL=postgresql://postgres:Croclurksintheswamp333@localhost:5432/anthizo_healthcare" >> $GITHUB_ENV
 
     - name: Wait for PostgreSQL to be ready
       run: |
