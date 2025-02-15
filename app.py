@@ -5,7 +5,7 @@ from flask_migrate import Migrate
 app = Flask(__name__)
 
 # Configure PostgreSQL Database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Croclurksintheswamp333@localhost:5432/anthizo_healthcare'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://anthizo_healthcare_db_user:SHZhEPNBiZNiyEqylgnQVj8YlCMWpFRg@dpg-cuoi150gph6c73dn8lsg-a/anthizo_healthcare_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize Database
