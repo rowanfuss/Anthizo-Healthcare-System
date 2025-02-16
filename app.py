@@ -1,16 +1,27 @@
+import os
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from dotenv import load_dotenv  # Import dotenv
 
 app = Flask(__name__)
+load_dotenv()  # Load environment variables from .env
 
-# Configure PostgreSQL Database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://anthizo_healthcare_db_user:SHZhEPNBiZNiyEqylgnQVj8YlCMWpFRg@dpg-cuoi150gph6c73dn8lsg-a/anthizo_healthcare_db'
+# ✅ Ensure DATABASE_URL is loaded correctly
+database_url = os.getenv("DATABASE_URL")
+if not database_url:
+    raise RuntimeError("DATABASE_URL is not set! Check your .env file.")
+
+# ✅ Set Database Configuration
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize Database
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
+# Print DATABASE_URL for Debugging
+print("Using DATABASE_URL:", database_url)
 
 # Define Appointment Model
 class Appointment(db.Model):
@@ -21,8 +32,11 @@ class Appointment(db.Model):
     time = db.Column(db.String(20), nullable=False)
 
 # Create Database Tables
-with app.app_context():
-    db.create_all()
+# with app.app_context():
+#    db.create_all()
+
+db.init_app(app)  # enure app is initialised
+migrate.init_app(app, db)  # ensure migration is initialised
 
 # Route: Book Appointment
 @app.route('/appointments', methods=['POST'])
