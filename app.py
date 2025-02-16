@@ -28,6 +28,7 @@ class Appointment(db.Model):
     doctor_name = db.Column(db.String(100), nullable=False)
     date = db.Column(db.String(20), nullable=False)
     time = db.Column(db.String(20), nullable=False)
+    notes = db.Column(db.String(255), nullable=True)
 
 # ✅ No need to manually call `db.create_all()`, Flask-Migrate handles this
 
