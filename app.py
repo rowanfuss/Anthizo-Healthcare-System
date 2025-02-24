@@ -62,7 +62,6 @@ def book_appointment():
             "patient_name": new_appt.patient_name,
             "doctor_name": new_appt.doctor_name,
             "date": new_appt.date,
-            "time": new_appt.time
         }
     }), 201
 
