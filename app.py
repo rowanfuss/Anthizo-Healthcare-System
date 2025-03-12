@@ -4,24 +4,33 @@ from flask_migrate import Migrate
 from dotenv import load_dotenv
 from database import db  # ✅ Import the single database instance
 
-# Load environment variables
+# ✅ Load environment variables BEFORE initializing Flask
 load_dotenv()
 
-# Initialize Flask App
+# ✅ Initialize Flask App
 app = Flask(__name__)
 
-# Set Database Configurations
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
+# ✅ Set Database Configuration
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SQLALCHEMY_DATABASE_URI")  # 🔧 Updated variable name
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# ✅ Initialize Extensions (NO duplicate instances!)
+# ✅ Ensure environment variable is loaded correctly
+if not app.config['SQLALCHEMY_DATABASE_URI']:
+    raise ValueError("⚠️ SQLALCHEMY_DATABASE_URI is not set. Check your .env file.")
+
+# ✅ Initialize Extensions
 db.init_app(app)  # Bind SQLAlchemy to Flask app
 migrate = Migrate(app, db)  # Setup Flask-Migrate
 
 # ✅ Print DATABASE_URL for Debugging
-print("Using DATABASE_URL:", os.getenv("DATABASE_URL"))
+print(f"🔧 Using DATABASE_URL: {app.config['SQLALCHEMY_DATABASE_URI']}")
 
-# Define Appointment Model
+# ✅ Define Simple Home Route for Testing
+@app.route('/')
+def home():
+    return jsonify({"message": "Anthizo Healthcare System API is running!"})
+
+# ✅ Define Appointment Model
 class Appointment(db.Model):
     id = db.Column(db.Integer, primary_key=True)  # Unique ID
     patient_name = db.Column(db.String(100), nullable=False)
@@ -30,28 +39,21 @@ class Appointment(db.Model):
     time = db.Column(db.String(20), nullable=False)
     notes = db.Column(db.String(255), nullable=True)
 
-# ✅ No need to manually call `db.create_all()`, Flask-Migrate handles this
-
-# Route: Book Appointment
+# ✅ Routes for Appointment Management
 @app.route('/appointments', methods=['POST'])
 def book_appointment():
     """Book a new appointment"""
     data = request.get_json()
-
-    # Validate required fields
     if not all(k in data for k in ['patient_name', 'doctor_name', 'date', 'time']):
         return jsonify({"error": "Missing required fields"}), 400
 
-    # Check if doctor already has an appointment at the given time
     existing_appt = Appointment.query.filter_by(
         doctor_name=data['doctor_name'], date=data['date'], time=data['time']
     ).first()
     if existing_appt:
         return jsonify({"error": "Doctor already has an appointment at this time"}), 400
 
-    # Create new appointment
     new_appt = Appointment(**data)
-
     db.session.add(new_appt)
     db.session.commit()
 
@@ -65,7 +67,6 @@ def book_appointment():
         }
     }), 201
 
-# Route: Get All Appointments
 @app.route('/appointments', methods=['GET'])
 def get_appointments():
     """Retrieve all booked appointments"""
@@ -81,12 +82,10 @@ def get_appointments():
         for appt in appointments
     ]), 200
 
-# Route: Cancel Appointment
 @app.route('/appointments/<int:appointment_id>', methods=['DELETE'])
 def cancel_appointment(appointment_id):
     """Cancel an appointment by ID"""
     appointment = Appointment.query.get(appointment_id)
-
     if not appointment:
         return jsonify({"error": "Invalid appointment ID"}), 404
 
@@ -104,6 +103,6 @@ def cancel_appointment(appointment_id):
         }
     }), 200
 
-# Run Flask App
+# ✅ Run Flask App
 if __name__ == '__main__':
     app.run(debug=True)
